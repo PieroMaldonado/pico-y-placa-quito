@@ -1,0 +1,6 @@
+@PicoYPlacaQuito_HostAddress = http://localhost:5013
+
+GET {{PicoYPlacaQuito_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
