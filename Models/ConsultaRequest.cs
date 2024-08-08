@@ -5,7 +5,7 @@ namespace PicoYPlacaQuito.Models
     public class ConsultaRequest
     {
         [Required(ErrorMessage = "La placa es obligatoria.")]
-        [StringLength(7, MinimumLength = 6, ErrorMessage = "La placa debe tener exactamente 7 caracteres.")]
+        [StringLength(7, MinimumLength = 6, ErrorMessage = "La placa no puede tener más 7 caracteres ni menos de 6 caracteres.")]
         [RegularExpression(@"^[A-Z]{3}\d{3,4}$", ErrorMessage = "La placa debe seguir el formato ABC123 o ABC1234")]
 
 

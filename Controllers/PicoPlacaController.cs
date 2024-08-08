@@ -1,5 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using PicoYPlacaQuito.Models;
+using Microsoft.Data.SqlClient;
+using System.Data;
 
 namespace PicoYPlacaQuito.Controllers
 {
@@ -22,15 +24,30 @@ namespace PicoYPlacaQuito.Controllers
                 return BadRequest(ModelState);
             }
 
-            bool puedeCircular = DeterminarSiPuedeCircular(request.Placa, request.Fecha, request.Hora);
+            string connectionString = _configuration.GetConnectionString("DefaultConnection");
+            using (SqlConnection connection = new SqlConnection(connectionString))
+            { 
+                await connection.OpenAsync();
 
-            var response = new ConsultaResponse
-            {
-                PuedeCircular = puedeCircular,
-                Mensaje = puedeCircular ? "El vehículo puede circular." : "El vehículo no puede circular."
-            };
+                using (SqlCommand command = new SqlCommand("RegistrarConsulta", connection))
+                {
+                    command.CommandType = CommandType.StoredProcedure;
+                    command.Parameters.AddWithValue("@Placa", request.Placa);
+                    command.Parameters.AddWithValue("@Fecha", request.Fecha.Date);
+                    command.Parameters.AddWithValue("@Hora", request.Hora);
 
-            return Ok(response);
+                    bool puedeCircular = DeterminarSiPuedeCircular(request.Placa, request.Fecha, request.Hora);
+                    command.Parameters.AddWithValue("@PuedeCircular", puedeCircular);
+                    await command.ExecuteNonQueryAsync();
+                    var response = new ConsultaResponse
+                    {
+                        PuedeCircular = puedeCircular,
+                        Mensaje = puedeCircular ? "El vehículo puede circular." : "El vehículo no puede circular."
+                    };
+
+                    return Ok(response);
+                }
+            }
         }
 
         private bool DeterminarSiPuedeCircular(string placa, DateTime fecha, TimeSpan hora)
@@ -41,7 +58,7 @@ namespace PicoYPlacaQuito.Controllers
             // Determinar el día de la semana
             DayOfWeek diaSemana = fecha.DayOfWeek;
 
-            // Verificar si es sábado, domingo o un feriado
+            // Verificar si es sábado, domingo
             if (diaSemana == DayOfWeek.Saturday || diaSemana == DayOfWeek.Sunday)
             {
                 return true; // Libre circulación en fines de semana
@@ -60,7 +77,7 @@ namespace PicoYPlacaQuito.Controllers
 
             if (puedeCircularHoy)
             {
-                // Verificar horarios restringidos
+                // Definir horarios mañana y tarde restringidos
                 TimeSpan horaInicioManana = new TimeSpan(6, 0, 0);
                 TimeSpan horaFinManana = new TimeSpan(9, 30, 0);
                 TimeSpan horaInicioTarde = new TimeSpan(16, 0, 0);
