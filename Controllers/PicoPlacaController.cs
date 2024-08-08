@@ -17,6 +17,11 @@ namespace PicoYPlacaQuito.Controllers
         [HttpPost]
         public async Task<IActionResult> RegistrarConsulta([FromBody] ConsultaRequest request)
         {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
             return Ok("Mensaje");
         }
     }
