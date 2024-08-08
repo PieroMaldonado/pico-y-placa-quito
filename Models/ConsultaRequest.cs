@@ -14,7 +14,6 @@ namespace PicoYPlacaQuito.Models
 
         public DateTime Fecha { get; set; }
         [Required(ErrorMessage = "La hora es obligatoria.")]
-
         public TimeSpan Hora { get; set; }
     }
 }
